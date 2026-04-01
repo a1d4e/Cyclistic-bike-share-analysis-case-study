@@ -23,7 +23,12 @@ How do casual riders and annual members use Cyclistic bikes differently?
 ## Key Findings
  * casual riders take 63% longer trips than members;  
  * casual riders peak on weekends and members on weekdays;  
- * the number of trips from casual riders drops considerably in winter.  
+ * the number of trips from casual riders drops considerably in winter.
+
+## Visualization  
+![Average Ride Duration](avg_ride_duration.jpeg)    
+![Rides by Day of Week](rides_by_day.jpeg)  
+![Rides by Month](rides_by_month)
 
 ## Recommendations
  * a "weekend membership" for the casual riders;  
@@ -36,3 +41,4 @@ How do casual riders and annual members use Cyclistic bikes differently?
 
 ## Author
 Adelina Dumitrașcu - aspiring data analyst
+[LinkedIn](www.linkedin.com/in/adelina-dumitrascu-714ba8174)
