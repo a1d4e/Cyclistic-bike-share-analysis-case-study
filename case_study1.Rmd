@@ -1,0 +1,105 @@
+---
+title: "Cycling analysis"
+author: "Ade"
+date: "2026-03-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+
+setwd("~/Documents/data analyst/case study/raw_data")
+
+all_trips_clean <- read_csv("all_trips_clean.csv")
+```
+
+
+# Introduction
+
+
+I've installed and load the *tidyverse* packages for data wrangling, *lubridate* packages for working with dates and *janitor* packages for cleaning.  
+I've set my working directory to documents>data analyst>case study>raw data;  
+Load my datasets into R with *read_csv()* function, and save each one in a variable;    
+Combined all into one dataset *all_trips*;    
+Took a look at the data with *View()*, *glimpse()*, *head()*, *colnames()*, *str()*, *summary()*.   
+Next I used *table()* function to see how many casual vs members riders are;    
+I used *sum()* function  with *is.na()* to see how many missing values are;  
+  * members - 3581039 trips (aprox 64%)  
+  * casual - 2009793 trips (aprox 36%)    
+*colSums()* function with *is.na()* shows the missing values in every column;   
+The important columns that I need to work with don't have missing values, that's an important fact.
+
+
+# Sort, filter and mutate 
+
+
+**all_trips_clean <- all_trips %>% filter(!is.na(end_lat) & !is.na(end_lng))** - I filtered the all_trips dataset for missing values in end_lat column and end_lng column.    
+**all_trips_clean <- all_trips_clean %>% mutate(ride_length = as.numeric(difftime(ended_at, started_at, units = "mins")))** - add a new column, calculated with the difference between the end and start trip.    
+**all_trips_clean <- all_trips_clean %>% filter(ride_length > 0)** - filtered the negatives values from the ride_lenght col, bad data.    
+**all_trips_clean <- all_trips_clean %>% mutate(date = as.Date(started_at), month = format(date, "%B"), day = format(date, "%d"), year = format(date, "%Y"), day_of_week = weekdays(date))** - added new cols, the col *date* from the *started_at* col, *month*, *day*, *year* and *day_of_week* from *date* col;  
+Number of rows, in all trips clean is 5585259;    
+Number of rows in all trips is 5590832;   
+The difference is 5573, less that 0,1% of the data;   
+Number of columns in all trip clean is 19 cols;   
+I have made another check with *summary()* and discovered that are trips that last less that a minute, this means that the rider never left, and trips that last more that 24 hours, which means that the bike was stolen.   
+I cleaned those extreme values, 146972 rows filtered out.   
+Until now I have removed 2,7% from the data set.    
+
+
+
+# Finding the difference between casual riders and members
+
+
+### Grouped by riders:    
+ * casual riders: average ride = 19,8 mins, median ride = 11,9 mins;    
+ * members: average ride - 11,2 mins, median ride = 8,7 mins;   
+Casual riders take longer trips than members, they have different motivations for riding the bikes
+
+### Grouped by days of week and riders:
+    
+ * Friday **number of rides** casual(306605) < member(520017), **average duration** casual(19,6) > member(12,1)   
+ * Monday **number of rides** casual(222869) < member(503479), **average duration** casual(19,6) > member(11,7)    
+ * Saturday **number of rides** casual(396927) < member(442834), **average duration** casual(22,3) > member(13,3)   
+ * Sunday **number of rides** casual(320720) < member(383682), **average duration** casual(23,0) > member(13,4)   
+ * Thursday **number of rides** casual(248508) < member(566963), **average duration** casual(17,4) > member(11,7)   
+ * Tuesday **number of rides** casual(217750) < member(555914), **average duration** casual(17,6) > member(11,7)    
+ * Wednesday **number of rides** casual(212557) < member(539462), **average duration** casual(16,3) > member(11,6)    
+Members rides more than casual, but the average duration is longer in casual members. The number of rides in members is steady for the weekdays and lowers in weekends, but the number of rides in casual riders rise in the weekends and lowers in the weekdays.Also the average duration of the ride in casual embers rises on weekends and lowers on weekdays and the average duration in members is constant in the weekdays and grows with a few mins in the weekends. The conclusion is that members ride the bikes for work and the casual member for fun.   
+
+
+### Group by riders and month:    
+
+
+ * Casual riders take 63% longer trips than members      
+ * Casual riders depend very much on the weather, in the winter they almost disappear, members ride year round       
+ * Casual riders peak on weekends, members peak on weekdays    
+
+
+### Visualization with "ggplot2"   
+
+ * 3 Charts to visualize
+```{r member vs casual, echo=FALSE, warning=FALSE, message=FALSE}
+all_trips_clean %>% group_by(member_casual) %>% summarise(avg_ride = mean(ride_length)) %>% ggplot(aes(x = member_casual, y = avg_ride, fill = member_casual)) + geom_col() + scale_fill_manual(values = c("casual" = "#F4753B", "member" = "#1D9E75")) + scale_y_continuous(labels = scales::comma) + labs(title = "Casual Riders take 63% longer trips than members", subtitle = "Average Ride Duration in Minutes", x = "Rider Type", y = "Average duration - minutes", fill = "Rider Type") + theme_minimal()
+```
+ 
+```{r member vs casual day of week, echo=FALSE, warning=FALSE, message=FALSE}
+all_trips_clean %>% group_by(member_casual,day_of_week) %>% summarise(number_of_rides = n()) %>% mutate(day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% ggplot(aes(x = day_of_week, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + scale_fill_manual(values = c("casual" = "#F4753B", "member" = "#1D9E75")) + scale_y_continuous(labels = scales::comma) + labs(title = "Casual riders peak on weekends, members on weekdays", subtitle = "Number of Rides by Day of Week", x = "Day of Week", y = "Number of Rides", fill = "Rider Type") + theme_minimal()
+```
+
+```{r member vs casual month, echo=FALSE, warning=FALSE, message=FALSE}
+all_trips_clean %>% group_by(member_casual, month) %>% summarise(number_of_rides = n()) %>% mutate(month = factor(month, levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))) %>% ggplot(aes(x = month, y = number_of_rides, fill = member_casual)) + geom_col(position = "dodge") + scale_fill_manual(values = c("casual" = "#F4753B", "member" = "#1D9E75")) + scale_y_continuous(labels = scales::comma) + labs(title = "Casual riders almost disappear in winter", subtitle = "Number of Rides by Month", x = "Month", y = "Number of Rides", fill = "Rider Type") + theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+Now I have 19 columns and 5438287 rows cleaned and analyzed
+
+
+### 3 insights    
+ * casual riders take 63% longer trips than members;   
+ * casual riders peak on weekends and members on weekdays;    
+ * casual riders almost disappear in winter.    
+
+
