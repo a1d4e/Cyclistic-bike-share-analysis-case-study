@@ -28,7 +28,7 @@ How do casual riders and annual members use Cyclistic bikes differently?
 ## Visualization  
 ![Average Ride Duration](avg_ride_duration.jpeg)    
 ![Rides by Day of Week](rides_by_day.jpeg)  
-![Rides by Month](rides_by_month)
+![Rides by Month](rides_by_month.jpeg)
 
 ## Recommendations
  * a "weekend membership" for the casual riders;  
@@ -40,5 +40,5 @@ How do casual riders and annual members use Cyclistic bikes differently?
  * "case_study1.Rmd"  
 
 ## Author
-Adelina Dumitrașcu - aspiring data analyst
+Adelina Dumitrașcu - aspiring data analyst  
 [LinkedIn](www.linkedin.com/in/adelina-dumitrascu-714ba8174)
